@@ -1,0 +1,24 @@
+#!/bin/bash
+
+export PATH=$PATH:/usr/local/cuda-7.5/bin/
+export LD_LIBRARY_PATH=/usr/local/cuda-7.5/targets/x86_64-linux/lib/
+export THEANO_FLAGS='mode=FAST_RUN,device=gpu,floatX=float32'
+export CUDA_ROOT=/usr/local/cuda-7.5/bin/
+
+mkdir /home/nimbix/.keras/
+echo '{"epsilon": 1e-07, "floatx": "float32", "backend": "tensorflow"}' >/home/nimbix/.keras/keras.json
+
+python3 - <<EOF
+import random,string
+random.seed(None)
+s=string.ascii_letters+string.digits+string.punctuation
+password=''.join(random.choice(s) for i in range(40))
+print('Jupyter password is:',password)
+from notebook.auth import passwd
+with open('/home/nimbix/jupyter-PASSWORD','w') as f:
+  print(passwd(password),end='',file=f)
+EOF
+
+sudo /usr/sbin/sshd
+jupyter notebook --config=/etc/jupyter_notebook_config.py&
+sudo socat tcp-l:443,fork,reuseaddr tcp:127.0.0.1:8888
